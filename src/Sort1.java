@@ -25,9 +25,9 @@ public class Sort1 implements ISort {
         while (blockLen < m_fileLen)
         {
             if (swapRequired)
-                sort(path1, path2, blockLen);
+                pass(path1, path2, blockLen);
             else
-                sort(path2, path1, blockLen);
+                pass(path2, path1, blockLen);
             swapRequired = !swapRequired;
             blockLen *= 2;
         }
@@ -35,30 +35,10 @@ public class Sort1 implements ISort {
             swap(path2, path1);
     }
 
-    public void swap(String from, String to) throws java.io.IOException
+
+
+	public void pass(String path1, String path2, int blockLen) throws java.io.IOException
     {
-        System.out.println("Swapping...");
-        RandomAccessFile a = new RandomAccessFile(from, "r");
-        RandomAccessFile b = new RandomAccessFile(to, "rw");
-        b.setLength(0); // clear the output file.
-
-        DataInputStream reader = new DataInputStream(
-                new BufferedInputStream(new FileInputStream(a.getFD()), m_maxMem/MAX_MEM_DIVIDER));
-        DataOutputStream writer = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(b.getFD()), m_maxMem/MAX_MEM_DIVIDER));
-
-        for (int i = 0; i < m_fileLen; i++)
-        {
-            writer.write(reader.read());
-        }
-
-        reader.close();
-        writer.close();
-        a.close();
-        b.close();
-    }
-
-	public void sort(String path1, String path2, int blockLen) throws java.io.IOException {
 		if (blockLen >= m_fileLen)
 		    return;
 
@@ -86,7 +66,7 @@ public class Sort1 implements ISort {
 
         int i = 1; // 1-based number of current block read by reader1
 
-        for ( ; i <= numBlocks/2-1; i ++)
+        for ( ; i <= numBlocks/2-1; i++)
         {
             while (true)
             {
@@ -95,24 +75,28 @@ public class Sort1 implements ISort {
 
                 else if (count1 >= blockLen*i)
                 {
+                    System.out.println("Writing " + r2);
                     writer.write(r2);
                     r2 = reader2.read();
                     count2++;
                 }
                 else if (count2 >= blockLen*i)
                 {
+                    System.out.println("Writing " + r1);
                     writer.write(r1);
                     r1 = reader1.read();
                     count1++;
                 }
                 else if (r1 < r2)
                 {
+                    System.out.println("Writing " + r1);
                     writer.write(r1);
                     r1 = reader1.read();
                     count1++;
                 }
                 else
                 {
+                    System.out.println("Writing " + r2);
                     writer.write(r2);
                     r2 = reader2.read();
                     count2++;
@@ -120,32 +104,37 @@ public class Sort1 implements ISort {
             }
         }
 
-
-        // the last pair of blocks to be merged. Done separately to only have the check against fileLen when necessary
+        System.out.println("Kurwa " + r2);
+        // the last pair of blocks to be merged. Done separately to only have the check against m_fileLen when necessary
         while (true)
         {
             if (count1 >= blockLen*i && (count2 >= blockLen*i || count2 >= m_fileLen))
                 break;
+
             else if (count1 >= blockLen*i)
             {
+                System.out.println("Writing " + r2);
                 writer.write(r2);
                 r2 = reader2.read();
                 count2++;
             }
             else if (count2 >= blockLen*i || count2 >= m_fileLen)
             {
+                System.out.println("Writing " + r1);
                 writer.write(r1);
                 r1 = reader1.read();
                 count1++;
             }
             else if (r1 < r2)
             {
+                System.out.println("Writing " + r1);
                 writer.write(r1);
                 r1 = reader1.read();
                 count1++;
             }
             else
             {
+                System.out.println("Writing " + r2);
                 writer.write(r2);
                 r2 = reader2.read();
                 count2++;
@@ -157,19 +146,48 @@ public class Sort1 implements ISort {
         {
             for (int j = 0; j < blockLen; j++)
             {
-                r1 = reader1.read();
+                System.out.println("Writing " + r1);
                 writer.write(r1);
+                r1 = reader1.read();
             }
         }
 
-
+        writer.flush();
+        writer.close();
         reader1.close();
         reader2.close();
-        writer.close();
 
         a1.close();
 		a2.close();
 		b.close();
+
+		System.out.print("During sorting... ");
+		Test.printFile(path2, false);
 	}
-	
+
+    private void swap(String from, String to) throws java.io.IOException
+    {
+        System.out.println("Swapping...");
+        RandomAccessFile a = new RandomAccessFile(from, "r");
+        RandomAccessFile b = new RandomAccessFile(to, "rw");
+        b.setLength(0); // clear the output file.
+
+        DataInputStream reader = new DataInputStream(
+                new BufferedInputStream(new FileInputStream(a.getFD()), m_maxMem/MAX_MEM_DIVIDER));
+        DataOutputStream writer = new DataOutputStream(
+                new BufferedOutputStream(new FileOutputStream(b.getFD()), m_maxMem/MAX_MEM_DIVIDER));
+
+        for (int i = 0; i < m_fileLen; i++)
+        {
+            writer.write(reader.read());
+        }
+
+        writer.flush();
+        writer.close();
+        reader.close();
+
+        a.close();
+        b.close();
+    }
+
 }
