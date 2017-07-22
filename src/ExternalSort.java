@@ -7,14 +7,19 @@ import java.security.NoSuchAlgorithmException;
 
 public class ExternalSort {
 
-	public static void main(String[] args) throws Exception {
-		
+	
+	public static void sort(String filenameA, String filenameB)
+			 throws FileNotFoundException, IOException
+	 {
 		//choose the sort implementation:
 		ISort sortingMethod = new Sort1();
-		
+		sortingMethod.sort(filenameA, filenameB);	
+	 }
+
+	public static void main(String[] args) throws Exception {	
 		String f1 = args[0];
 		String f2 = args[1];
-		sortingMethod.sort(f1, f2);
+		sort(f1, f2);
 		System.out.println("The checksum is: "+checkSum(f1));
 	}
 	
