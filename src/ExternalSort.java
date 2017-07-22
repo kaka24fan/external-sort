@@ -7,7 +7,6 @@ import java.security.NoSuchAlgorithmException;
 
 public class ExternalSort {
 
-	
 	public static void sort(String filenameA, String filenameB)
 			 throws FileNotFoundException, IOException
 	 {
@@ -17,10 +16,15 @@ public class ExternalSort {
 	 }
 
 	public static void main(String[] args) throws Exception {	
+		Test.test(3);
+		return;
+
+        /*
 		String f1 = args[0];
 		String f2 = args[1];
 		sort(f1, f2);
 		System.out.println("The checksum is: "+checkSum(f1));
+	    */
 	}
 	
 	private static String byteToHex(byte b) {
