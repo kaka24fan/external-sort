@@ -6,7 +6,7 @@ import static java.lang.Math.toIntExact;
 
 public class Test {
 
-    public static void test() throws java.io.IOException
+    public static void test() throws java.io.IOException // all test cases
     {
         List<String> checksums = new ArrayList<String>();
         try (BufferedReader br = new BufferedReader(new FileReader("test-suite/checksum.txt")))
@@ -22,9 +22,9 @@ public class Test {
             String f1 = "test-suite\\test" + i + "a.dat";
             String f2 = "test-suite\\test" + i + "b.dat";
 
-            printFile(f1, true);
+            //printFile(f1, true);
             ExternalSort.sort(f1, f2);
-            printFile(f1, false);
+            //printFile(f1, false);
 
             String ourChecksum = ExternalSort.checkSum(f1);
             String correctChecksum = checksums.get(i-1);
@@ -32,7 +32,7 @@ public class Test {
         }
     }
 
-    public static void test(int test_num) throws java.io.IOException
+    public static void test(int test_num) throws java.io.IOException // specified, single test case
     {
         List<String> checksums = new ArrayList<String>();
         try (BufferedReader br = new BufferedReader(new FileReader("test-suite/checksum.txt")))
@@ -59,12 +59,10 @@ public class Test {
         DataInputStream reader = new DataInputStream(
                 new BufferedInputStream(new FileInputStream(a.getFD()), toIntExact(Runtime.getRuntime().maxMemory()) / Sort1.MAX_MEM_DIVIDER));
 
-        int r = -69;
-
         System.out.println("\n" + (before ? "(Before) " : "(After) ") + path + ":");
         for (int i = 0; i < a.length() / 4; i++)
         {
-            r = reader.read();
+            int r = reader.readInt();
             System.out.println(r);
         }
     }
