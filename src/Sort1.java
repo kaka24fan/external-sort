@@ -166,6 +166,31 @@ public class Sort1 implements ISort {
             }
         }
 
+        // now if there was an even numBlocks, we're done with this pass.
+
+        // otherwise, there was an odd # of blocks, the middle one was unmatched.
+        // we can't just write it at the end unless the last block was full,
+        // cause we'd violate the invariant
+        // we need to merge a prefix of it into the last big block, to make it of length 2n
+        // and then paste the remaining part at the end.
+        int intsToMergeIn = mod(-m_fileLen, blockLen);
+
+        if (numBlocks % 2 == 1)
+        {
+            // merge into the last big block:
+            // (by big I mean of length 2*blockLen, ready for next pass)
+
+            
+
+            // paste the remainder at the end:
+            // no need to update count1 any more
+            for (int j = 0; j < blockLen - intsToMergeIn; j++)
+            {
+                r1 = reader1.readInt();
+                writer.writeInt(r1);
+            }
+        }
+
         writer.flush();
         writer.close();
         reader1.close();
@@ -175,8 +200,8 @@ public class Sort1 implements ISort {
 		a2.close();
 		b.close();
 
-		//System.out.print("During sorting... ");
-		//Test.printFile(path2, false);
+		System.out.print("During sorting... ");
+		Test.printFile(path2);
 	}
 
     private void swap(String from, String to) throws java.io.IOException
@@ -204,4 +229,12 @@ public class Sort1 implements ISort {
         b.close();
     }
 
+    private int mod(int n, int m)
+    {
+        return (n % m + m) % m;
+    }
+    private int mod(long n, int m)
+    {
+        return mod((int) n, m);
+    }
 }

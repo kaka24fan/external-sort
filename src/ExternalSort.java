@@ -16,7 +16,7 @@ public class ExternalSort {
 	 }
 
 	public static void main(String[] args) throws Exception {	
-		Test.test();
+		Test.test(4);
 		return;
 
         /*

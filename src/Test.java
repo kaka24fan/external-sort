@@ -55,11 +55,15 @@ public class Test {
     }
 
     public static void printFile(String path, boolean before) throws java.io.IOException {
+        System.out.println("\n" + (before ? "(Before) " : "(After) ") + path + ":");
+        printFile(path);
+    }
+
+    public static void printFile(String path) throws java.io.IOException {
         RandomAccessFile a = new RandomAccessFile(path, "r");
         DataInputStream reader = new DataInputStream(
                 new BufferedInputStream(new FileInputStream(a.getFD()), toIntExact(Runtime.getRuntime().maxMemory()) / Sort1.MAX_MEM_DIVIDER));
 
-        System.out.println("\n" + (before ? "(Before) " : "(After) ") + path + ":");
         for (int i = 0; i < a.length() / 4; i++)
         {
             int r = reader.readInt();
