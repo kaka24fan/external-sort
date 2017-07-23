@@ -48,7 +48,8 @@ public class Sort1 implements ISort {
 		long numBlocks = (m_fileLen+blockLen-1)/blockLen;
         long blocksToSkip = (numBlocks+1)/2;
 		a2.seek(blocksToSkip*blockLen*4); // each int is 4 bytes
-        long count2Limit = m_fileLen - blocksToSkip*blockLen; // this is how many ints the reader2 can read before EOF
+        long tmp = m_fileLen % blockLen;
+        long count2Limit = (tmp == 0) ? blockLen : tmp; // this is how many ints reader2 can read in last block
 
         DataInputStream reader1 = new DataInputStream(
                 new BufferedInputStream(new FileInputStream(a1.getFD())));
@@ -57,28 +58,30 @@ public class Sort1 implements ISort {
         DataOutputStream writer = new DataOutputStream(
                 new BufferedOutputStream(new FileOutputStream(b.getFD())));
 
-        int r1 = reader1.readInt();
-        //System.out.println("r1 = " + r1);
-        int r2 = reader2.readInt();
-        //System.out.println("r2 = " + r2);
 
-        int count1 = 1; // ints read from reader1
-        int count2 = 1; // ints read from reader2
-
-        boolean over1 = false;
-        boolean over2 = false;
 
         int i = 1; // 1-based number of current block read by reader1
 
         for ( ; i <= numBlocks/2-1; i++)
         {
+            boolean over1 = false;
+            boolean over2 = false;
+
+            int r1 = reader1.readInt();
+            //System.out.println("r1 = " + r1);
+            int r2 = reader2.readInt();
+            //System.out.println("r2 = " + r2);
+
+            int count1 = 1; // ints read from reader1
+            int count2 = 1; // ints read from reader2
+
             while (true)
             {
                 if (over1)
                 {
                     //System.out.println("Writing " + r2);
                     writer.writeInt(r2);
-                    if (count2 == blockLen*i)
+                    if (count2 == blockLen)
                         break;
                     r2 = reader2.readInt();
                     count2++;
@@ -87,7 +90,7 @@ public class Sort1 implements ISort {
                 {
                     //System.out.println("Writing " + r1);
                     writer.writeInt(r1);
-                    if (count1 == blockLen*i)
+                    if (count1 == blockLen)
                         break;
                     r1 = reader1.readInt();
                     count1++;
@@ -96,7 +99,7 @@ public class Sort1 implements ISort {
                 {
                     //System.out.println("Writing " + r1);
                     writer.writeInt(r1);
-                    if (count1 == blockLen*i)
+                    if (count1 == blockLen)
                         over1 = true;
                     else
                     {
@@ -108,7 +111,7 @@ public class Sort1 implements ISort {
                 {
                     //System.out.println("Writing " + r2);
                     writer.writeInt(r2);
-                    if (count2 == blockLen*i)
+                    if (count2 == blockLen)
                         over2 = true;
                     else
                     {
@@ -119,75 +122,257 @@ public class Sort1 implements ISort {
             }
         }
 
-        // the last pair of blocks to be merged. Done separately to only have the check against m_fileLen when necessary
-        while (true)
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // handle the last pair of blocks
+        // and if the numBlocks is odd, also the middle block:
+        //
+
+        // get a reader set on the middle block:
+        RandomAccessFile a3 = new RandomAccessFile(path1, "r");
+        a3.seek((blocksToSkip-1)*blockLen*4); // only use a3 in the (blockLen odd) case!
+        DataInputStream reader3 = new DataInputStream(
+                new BufferedInputStream(new FileInputStream(a3.getFD())));
+
+        int intsToMergeIn = mod(-m_fileLen, blockLen); // we merge this many ints from middle block together with the
+                                                       // last pair of blocks
+
+        if (numBlocks % 2 == 0 || intsToMergeIn == 0)
         {
-            if (over1)
+            boolean over1 = false;
+            boolean over2 = false;
+
+            int r1 = reader1.readInt();
+            //System.out.println("r1 = " + r1);
+            int r2 = reader2.readInt();
+            //System.out.println("r2 = " + r2);
+
+            int count1 = 1; // ints read from reader1
+            int count2 = 1; // ints read from reader2
+
+            // the last pair of blocks to be merged. Done separately to only have the check against m_fileLen when necessary
+            while (true)
             {
-                //System.out.println("Writing " + r2);
-                writer.writeInt(r2);
-                if (count2 == blockLen*i || count2 == count2Limit) // first condition probably redundant
-                    break;
-                r2 = reader2.readInt();
-                count2++;
-            }
-            else if (over2)
-            {
-                //System.out.println("Writing " + r1);
-                writer.writeInt(r1);
-                if (count1 == blockLen*i)
-                    break;
-                r1 = reader1.readInt();
-                count1++;
-            }
-            else if (r1 < r2)
-            {
-                //System.out.println("Writing " + r1);
-                writer.writeInt(r1);
-                if (count1 == blockLen*i)
-                    over1 = true;
-                else
+                if (over1)
                 {
-                    r1 = reader1.readInt();
-                    count1++;
-                }
-            }
-            else
-            {
-                //System.out.println("Writing " + r2);
-                writer.writeInt(r2);
-                if (count2 == blockLen*i || count2 == count2Limit)
-                    over2 = true;
-                else
-                {
+                    //System.out.println("Writing " + r2);
+                    writer.writeInt(r2);
+                    if (count2 == blockLen || count2 == count2Limit) // first condition probably redundant
+                        break;
                     r2 = reader2.readInt();
                     count2++;
                 }
+                else if (over2)
+                {
+                    //System.out.println("Writing " + r1);
+                    writer.writeInt(r1);
+                    if (count1 == blockLen)
+                        break;
+                    r1 = reader1.readInt();
+                    count1++;
+                }
+                else if (r1 < r2)
+                {
+                    //System.out.println("Writing " + r1);
+                    writer.writeInt(r1);
+                    if (count1 == blockLen)
+                        over1 = true;
+                    else
+                    {
+                        r1 = reader1.readInt();
+                        count1++;
+                    }
+                }
+                else
+                {
+                    //System.out.println("Writing " + r2);
+                    writer.writeInt(r2);
+                    if (count2 == blockLen || count2 == count2Limit)
+                        over2 = true;
+                    else
+                    {
+                        r2 = reader2.readInt();
+                        count2++;
+                    }
+                }
             }
         }
+        else // if (numBlocks % 2 == 1 && intsToMergeIn > 0)
+        {
+            boolean over1 = false;
+            boolean over2 = false;
+            boolean over3 = false;
 
-        // now if there was an even numBlocks, we're done with this pass.
+            int r1 = reader1.readInt();
+            //System.out.println("r1 = " + r1);
+            int r2 = reader2.readInt();
+            //System.out.println("r2 = " + r2);
+            int r3 = reader3.readInt();
+            //System.out.println("r3 = " + r3);
 
-        // otherwise, there was an odd # of blocks, the middle one was unmatched.
-        // we can't just write it at the end unless the last block was full,
-        // cause we'd violate the invariant
-        // we need to merge a prefix of it into the last big block, to make it of length 2n
-        // and then paste the remaining part at the end.
-        int intsToMergeIn = mod(-m_fileLen, blockLen);
+            int count1 = 1; // ints read from reader1
+            int count2 = 1; // ints read from reader2
+            int count3 = 1; // ints read from reader3
 
+            // the last pair of blocks to be merged together with a piece of the middle block of the size intsToMergeIn:
+
+            while (true)
+            {
+                if (over1 && over3)
+                {
+                    //System.out.println("Writing " + r2);
+                    writer.writeInt(r2);
+                    if (count2 == blockLen || count2 == count2Limit) // first condition probably redundant
+                        break;
+                    r2 = reader2.readInt();
+                    count2++;
+                }
+                else if (over2 && over3)
+                {
+                    //System.out.println("Writing " + r1);
+                    writer.writeInt(r1);
+                    if (count1 == blockLen)
+                        break;
+                    r1 = reader1.readInt();
+                    count1++;
+                }
+                else if (over1 && over2)
+                {
+                    //System.out.println("Writing " + r3);
+                    writer.writeInt(r3);
+                    if (count3 == intsToMergeIn)
+                        break;
+                    r3 = reader3.readInt();
+                    count3++;
+                }
+                else if (over3)
+                {
+                    if (r1 < r2)
+                    {
+                        //System.out.println("Writing " + r1);
+                        writer.writeInt(r1);
+                        if (count1 == blockLen)
+                            over1 = true;
+                        else
+                        {
+                            r1 = reader1.readInt();
+                            count1++;
+                        }
+                    }
+                    else // if (r2 <= r1)
+                    {
+                        //System.out.println("Writing " + r2);
+                        writer.writeInt(r2);
+                        if (count2 == blockLen || count2 == count2Limit)
+                            over2 = true;
+                        else
+                        {
+                            r2 = reader2.readInt();
+                            count2++;
+                        }
+                    }
+                }
+                else if (over2)
+                {
+                    if (r1 < r3)
+                    {
+                        //System.out.println("Writing " + r1);
+                        writer.writeInt(r1);
+                        if (count1 == blockLen)
+                            over1 = true;
+                        else
+                        {
+                            r1 = reader1.readInt();
+                            count1++;
+                        }
+                    }
+                    else // if (r3 <= r1)
+                    {
+                        //System.out.println("Writing " + r3);
+                        writer.writeInt(r3);
+                        if (count3 == intsToMergeIn)
+                            over3 = true;
+                        else
+                        {
+                            r3 = reader3.readInt();
+                            count3++;
+                        }
+                    }
+                }
+                else if (over1)
+                {
+                    if (r2 < r3)
+                    {
+                        //System.out.println("Writing " + r2);
+                        writer.writeInt(r2);
+                        if (count2 == blockLen || count2 == count2Limit)
+                            over2 = true;
+                        else
+                        {
+                            r2 = reader2.readInt();
+                            count2++;
+                        }
+                    }
+                    else // if (r3 <= r2)
+                    {
+                        //System.out.println("Writing " + r3);
+                        writer.writeInt(r3);
+                        if (count3 == intsToMergeIn)
+                            over3 = true;
+                        else
+                        {
+                            r3 = reader3.readInt();
+                            count3++;
+                        }
+                    }
+                }
+                else // nothing is over
+                {
+                    int min = Math.min(Math.min(r1, r2), r3);
+                    if (min == r1)
+                    {
+                        //System.out.println("Writing " + r1);
+                        writer.writeInt(r1);
+                        if (count1 == blockLen)
+                            over1 = true;
+                        else
+                        {
+                            r1 = reader1.readInt();
+                            count1++;
+                        }
+                    }
+                    else if (min == r2)
+                    {
+                        //System.out.println("Writing " + r2);
+                        writer.writeInt(r2);
+                        if (count2 == blockLen || count2 == count2Limit)
+                            over2 = true;
+                        else
+                        {
+                            r2 = reader2.readInt();
+                            count2++;
+                        }
+                    }
+                    else // (min == r3)
+                    {
+                        //System.out.println("Writing " + r3);
+                        writer.writeInt(r3);
+                        if (count3 == intsToMergeIn)
+                            over3 = true;
+                        else
+                        {
+                            r3 = reader3.readInt();
+                            count3++;
+                        }
+                    }
+                }
+            }
+        }
+        // paste the remainder of the middle block at the end:
         if (numBlocks % 2 == 1)
         {
-            // merge into the last big block:
-            // (by big I mean of length 2*blockLen, ready for next pass)
-
-            
-
-            // paste the remainder at the end:
-            // no need to update count1 any more
             for (int j = 0; j < blockLen - intsToMergeIn; j++)
             {
-                r1 = reader1.readInt();
-                writer.writeInt(r1);
+                writer.writeInt(reader3.readInt());
             }
         }
 
@@ -195,13 +380,15 @@ public class Sort1 implements ISort {
         writer.close();
         reader1.close();
         reader2.close();
+        reader3.close();
 
         a1.close();
 		a2.close();
+		a3.close();
 		b.close();
 
-		System.out.print("During sorting... ");
-		Test.printFile(path2);
+		//System.out.println("During sorting...:");
+		//Test.printFile(path2);
 	}
 
     private void swap(String from, String to) throws java.io.IOException
