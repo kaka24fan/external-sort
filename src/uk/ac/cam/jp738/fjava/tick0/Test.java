@@ -1,3 +1,5 @@
+package uk.ac.cam.jp738.fjava.tick0;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,7 @@ public class Test {
 
     public static void test() throws java.io.IOException // all test cases
     {
+        long time0 = System.nanoTime();
         List<String> checksums = new ArrayList<String>();
         try (BufferedReader br = new BufferedReader(new FileReader("test-suite/checksum.txt")))
         {
@@ -30,6 +33,8 @@ public class Test {
             String correctChecksum = checksums.get(i-1);
             System.out.println(i + ": " + (ourChecksum.equals(correctChecksum) ? "OK" : "WRONG"));
         }
+
+        System.out.println("Done in time " + (System.nanoTime() - time0)*1000000000.0);
     }
 
     public static void test(int test_num) throws java.io.IOException // specified, single test case

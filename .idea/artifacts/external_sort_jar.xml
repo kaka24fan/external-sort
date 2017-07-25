@@ -1,0 +1,24 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="external-sort:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/external_sort_jar</output-path>
+    <root id="archive" name="jp738-tick0.jar">
+      <element id="module-output" name="external-sort" />
+      <element id="directory" name="uk">
+        <element id="directory" name="ac">
+          <element id="directory" name="cam">
+            <element id="directory" name="jp738">
+              <element id="directory" name="fjava">
+                <element id="directory" name="tick0">
+                  <element id="file-copy" path="$PROJECT_DIR$/src/uk/ac/cam/jp738/fjava/tick0/ExternalSort.java" />
+                  <element id="file-copy" path="$PROJECT_DIR$/src/uk/ac/cam/jp738/fjava/tick0/ISort.java" />
+                  <element id="file-copy" path="$PROJECT_DIR$/src/uk/ac/cam/jp738/fjava/tick0/Sort1.java" />
+                  <element id="file-copy" path="$PROJECT_DIR$/src/uk/ac/cam/jp738/fjava/tick0/Test.java" />
+                </element>
+              </element>
+            </element>
+          </element>
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

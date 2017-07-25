@@ -1,3 +1,5 @@
+package uk.ac.cam.jp738.fjava.tick0;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -7,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class ExternalSort {
 
+    private final static boolean TESTING = false;
 	public static void sort(String filenameA, String filenameB)
 			 throws FileNotFoundException, IOException
 	 {
@@ -16,15 +19,16 @@ public class ExternalSort {
 	 }
 
 	public static void main(String[] args) throws Exception {	
-		Test.test();
-		return;
+		if (TESTING)
+        {
+            Test.test();
+            return;
+        }
 
-        /*
 		String f1 = args[0];
 		String f2 = args[1];
 		sort(f1, f2);
 		System.out.println("The checksum is: "+checkSum(f1));
-	    */
 	}
 	
 	private static String byteToHex(byte b) {
