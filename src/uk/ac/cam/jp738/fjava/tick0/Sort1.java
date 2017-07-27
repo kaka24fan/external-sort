@@ -6,7 +6,7 @@ import static java.lang.Math.toIntExact;
 public class Sort1 implements ISort {
 
     private int m_maxMem = -1;
-    public static final int MAX_MEM_DIVIDER = 10;
+    public static final int MAX_MEM_DIVIDER = 5;
     private long m_fileLen = -1;
 
 
