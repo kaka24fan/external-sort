@@ -54,11 +54,11 @@ public class Sort1 implements ISort {
         long count2Limit = (tmp == 0) ? blockLen : tmp; // this is how many ints reader2 can read in last block
 
         DataInputStream reader1 = new DataInputStream(
-                new BufferedInputStream(new FileInputStream(a1.getFD())));
+                new BufferedInputStream(new FileInputStream(a1.getFD()), m_maxMem/MAX_MEM_DIVIDER)); // why on earth is this not using a specified size?!
         DataInputStream reader2 = new DataInputStream(
-                new BufferedInputStream(new FileInputStream(a2.getFD())));
+                new BufferedInputStream(new FileInputStream(a2.getFD()), m_maxMem/MAX_MEM_DIVIDER));
         DataOutputStream writer = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(b.getFD())));
+                new BufferedOutputStream(new FileOutputStream(b.getFD()), m_maxMem/MAX_MEM_DIVIDER));
 
 
 
