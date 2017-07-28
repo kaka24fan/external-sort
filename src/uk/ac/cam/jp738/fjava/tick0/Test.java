@@ -37,7 +37,7 @@ public class Test {
             System.out.println(i + ": " + (ourChecksum.equals(correctChecksum) ? "OK" : "WRONG"));
         }
 
-        System.out.println("Done in time " + (System.nanoTime() - time0)*1000000.0 + "ms");
+        System.out.println("Done in time " + (System.nanoTime() - time0)/1000000.0 + "ms");
     }
 
     public static void test(int test_num) throws java.io.IOException // specified, single test case
@@ -63,7 +63,7 @@ public class Test {
         String ourChecksum = ExternalSort.checkSum(f1);
         String correctChecksum = checksums.get(test_num-1);
         System.out.println(test_num + ": " + (ourChecksum.equals(correctChecksum) ? "OK" : "WRONG"));
-        System.out.println("Done in time " + (System.nanoTime() - time0)*1000000.0 + "ms");
+        System.out.println("Done in time " + (System.nanoTime() - time0)/1000000.0 + "ms");
     }
 
     public static void printFile(String path, boolean before) throws java.io.IOException {
