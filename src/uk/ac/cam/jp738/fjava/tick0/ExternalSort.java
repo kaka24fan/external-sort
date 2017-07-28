@@ -9,13 +9,16 @@ import java.security.NoSuchAlgorithmException;
 
 public class ExternalSort {
 
-    private final static boolean TESTING = false;
+    private final static boolean TESTING = true;
 	public static void sort(String filenameA, String filenameB)
 			 throws FileNotFoundException, IOException
 	 {
-		//choose the sort implementation:
-		ISort sortingMethod = new Sort1();
-		sortingMethod.sort(filenameA, filenameB);	
+		 //choose the sort implementation:
+
+         //ISort sortingMethod = new Sort1();
+         ISort sortingMethod = new Sort2();
+
+         sortingMethod.sort(filenameA, filenameB);
 	 }
 
 	public static void main(String[] args) throws Exception {	
@@ -25,10 +28,8 @@ public class ExternalSort {
             return;
         }
 
-		String f1 = args[0];
-		String f2 = args[1];
-		sort(f1, f2);
-		System.out.println("The checksum is: "+checkSum(f1));
+		sort(args[0], args[1]);
+		System.out.println("The checksum is: "+checkSum(args[0]));
 	}
 	
 	private static String byteToHex(byte b) {
