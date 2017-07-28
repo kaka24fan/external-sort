@@ -34,7 +34,7 @@ public class Sort1 implements ISort {
             blockLen *= 2;
         }
         if (swapRequired)
-            swap(path2, path1);
+            Statics.swap(path2, path1);
     }
 
 
@@ -54,11 +54,11 @@ public class Sort1 implements ISort {
         long count2Limit = (tmp == 0) ? blockLen : tmp; // this is how many ints reader2 can read in last block
 
         DataInputStream reader1 = new DataInputStream(
-                new BufferedInputStream(new FileInputStream(a1.getFD()), m_maxMem/MAX_MEM_DIVIDER)); // why on earth is this not using a specified size?!
+                new BufferedInputStream(new FileInputStream(a1.getFD())/*, m_maxMem/MAX_MEM_DIVIDER*/)); // why on earth is this not using a specified size?!
         DataInputStream reader2 = new DataInputStream(
-                new BufferedInputStream(new FileInputStream(a2.getFD()), m_maxMem/MAX_MEM_DIVIDER));
+                new BufferedInputStream(new FileInputStream(a2.getFD())/*, m_maxMem/MAX_MEM_DIVIDER*/));
         DataOutputStream writer = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(b.getFD()), m_maxMem/MAX_MEM_DIVIDER));
+                new BufferedOutputStream(new FileOutputStream(b.getFD())/*, m_maxMem/MAX_MEM_DIVIDER*/));
 
 
 
@@ -388,35 +388,7 @@ public class Sort1 implements ISort {
 		a2.close();
 		a3.close();
 		b.close();
-
-		//System.out.println("During sorting...:");
-		//Test.printFile(path2);
 	}
-
-    private void swap(String from, String to) throws java.io.IOException
-    {
-        //System.out.println("Swapping...");
-        RandomAccessFile a = new RandomAccessFile(from, "r");
-        RandomAccessFile b = new RandomAccessFile(to, "rw");
-        b.seek(0);
-
-        DataInputStream reader = new DataInputStream(
-                new BufferedInputStream(new FileInputStream(a.getFD()), m_maxMem/MAX_MEM_DIVIDER));
-        DataOutputStream writer = new DataOutputStream(
-                new BufferedOutputStream(new FileOutputStream(b.getFD()), m_maxMem/MAX_MEM_DIVIDER));
-
-        for (int i = 0; i < m_fileLen; i++)
-        {
-            writer.writeInt(reader.readInt());
-        }
-
-        writer.flush();
-        writer.close();
-        reader.close();
-
-        a.close();
-        b.close();
-    }
 
     private int mod(int n, int m)
     {

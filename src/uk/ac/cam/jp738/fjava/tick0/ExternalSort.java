@@ -9,13 +9,12 @@ import java.security.NoSuchAlgorithmException;
 
 public class ExternalSort {
 
-    private final static boolean TESTING = true;
+    public final static boolean TESTING = true;
 	public static void sort(String filenameA, String filenameB)
 			 throws FileNotFoundException, IOException
 	 {
 		 //choose the sort implementation:
 
-         //ISort sortingMethod = new Sort1();
          ISort sortingMethod = new Sort2();
 
          sortingMethod.sort(filenameA, filenameB);

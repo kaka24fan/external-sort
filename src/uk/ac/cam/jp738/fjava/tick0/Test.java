@@ -96,6 +96,15 @@ public class Test {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            s = "backup-test-suite\\test" + i + "b.dat";
+            d = "test-suite\\test" + i + "b.dat";
+            source = new File(s);
+            dest = new File(d);
+            try {
+                FileUtils.copyFile(source, dest);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

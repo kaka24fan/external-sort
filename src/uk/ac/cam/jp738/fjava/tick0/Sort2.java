@@ -6,6 +6,8 @@ import static java.lang.Math.toIntExact;
 import java.util.LinkedList;
 import java.util.Queue;
 
+
+
 public class Sort2 implements ISort {
 
     private int m_maxMem = -1;
@@ -14,6 +16,10 @@ public class Sort2 implements ISort {
     private static final int BACKWARDS_WRITE_BUFFER_SIZE = 100; // ???
     private static final int SMALL_SORT_THRESHOLD = 6; // ???
 
+    /**
+     * path1, path2 do not change - path1 is always the path we want the final result on
+     *
+     */
     @Override
     public void sort(String path1, String path2) throws java.io.IOException
     {
@@ -24,7 +30,7 @@ public class Sort2 implements ISort {
         boolean backwardsBufferNotUsedYet;
 
         m_maxMem = toIntExact(Runtime.getRuntime().maxMemory());
-        //System.out.println("maxMem: " + m_maxMem);
+        //Statics.log("maxMem: " + m_maxMem);
 
         DataInputStream tmpDataInputStream;
         DataOutputStream tmpDataOutputStream;
@@ -60,7 +66,7 @@ public class Sort2 implements ISort {
         {
             lo = to_process.poll();
             hi = to_process.poll();
-            System.out.println("lo=" + lo + ", hi=" + hi);
+            Statics.log("Polling: lo=" + lo + ", hi=" + hi);
             nPivEq = 1; // this is the num of ints equal to pivot
             nPivGr = 0; // this is the num of ints greater than pivot
             backwardsWriteBufferElemCount = 0;
@@ -185,9 +191,11 @@ public class Sort2 implements ISort {
 
             to_process.add(lo); // 1st pair to be processed: next lo is this lo
             to_process.add(lo + (hi - lo) - nPivGr - nPivEq); // 1st pair to be processed: next hi
+            Statics.log("Pushing: lo=" + lo + ", hi=" + (lo + (hi - lo) - nPivGr - nPivEq));
 
             to_process.add(lo + (hi - lo) - nPivGr); // 2nd pair to be processed: next lo
             to_process.add(hi); // 2nd pair to be processed: next hi is this hi
+            Statics.log("Pushing: lo=" + (lo + (hi - lo) - nPivGr) + ", hi=" + hi);
 
             if (hi == m_fileLen) // we got to the end of file
             {
@@ -228,7 +236,7 @@ public class Sort2 implements ISort {
 
         if (swapNeeded)
         {
-            new File(path2).renameTo(new File(path1));
+            Statics.swap(path2, path1);
         }
         //done
     }
