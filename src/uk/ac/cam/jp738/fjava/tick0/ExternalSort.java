@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 public class ExternalSort {
 
     public final static boolean TESTING = true;
+    public final static boolean DEBUG = true;
 	public static void sort(String filenameA, String filenameB)
 			 throws FileNotFoundException, IOException
 	 {
@@ -23,7 +24,7 @@ public class ExternalSort {
 	public static void main(String[] args) throws Exception {	
 		if (TESTING)
         {
-            Test.test();
+            Test.test(13);
             return;
         }
 

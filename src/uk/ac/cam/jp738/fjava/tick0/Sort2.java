@@ -5,7 +5,7 @@ import static java.lang.Math.toIntExact;
 
 import java.util.LinkedList;
 import java.util.Queue;
-
+import java.util.Random;
 
 
 public class Sort2 implements ISort {
@@ -26,7 +26,7 @@ public class Sort2 implements ISort {
         int lo, hi, piv, nPivEq, nPivGr, tmpint;
         LinkedList<Integer> backwardsWriteBuffer = new LinkedList<Integer>();
         int backwardsWriteBufferElemCount;
-        boolean swapNeeded = true;
+        boolean swapNeeded = false;
         boolean backwardsBufferNotUsedYet;
 
         m_maxMem = toIntExact(Runtime.getRuntime().maxMemory());
@@ -66,20 +66,21 @@ public class Sort2 implements ISort {
         {
             lo = to_process.poll();
             hi = to_process.poll();
-            Statics.log("Polling: lo=" + lo + ", hi=" + hi);
+            Statics.log("\nPolling: lo=" + lo + ", hi=" + hi);
             nPivEq = 1; // this is the num of ints equal to pivot
             nPivGr = 0; // this is the num of ints greater than pivot
             backwardsWriteBufferElemCount = 0;
             backwardsBufferNotUsedYet = true;
 
             // reset reader:
-            a1.seek(0);
+            a1.seek(lo * 4);
 
             // set forward writer:
             a21.seek(lo * 4);
 
             // set backward writer:
-            a22.seek((hi - 1) * 4);
+            a22.seek(hi * 4);
+
 
             // if hi-lo too small do a different sort
             if (hi-lo <= SMALL_SORT_THRESHOLD)
@@ -110,13 +111,26 @@ public class Sort2 implements ISort {
                 for (int j = 0; j < hi-lo-1; j++)
                 {
                     w21.writeInt(small_array[j]);
+                    //Statics.log("w" + small_array[j]);
                 }
+
+                // now write it to the other file as well. After that the lo-hi segment will never be touch again in
+                // either of the files
+                a11.seek(lo);
+                for (int j = 0; j < hi-lo-1; j++)
+                {
+                    w11.writeInt(small_array[j]);
+                    //Statics.log("w" + small_array[j]);
+                }
+                w11.flush();
+
             }
             else // hi-lo big enough, continue doing quicksort
             {
                 // choose pivot:
                 piv = r1.readInt();
-
+                Statics.log("piv=" + piv);
+                
                 // process the block:
                 for (int i = 1; i < hi - lo; i++)
                 {
@@ -128,16 +142,27 @@ public class Sort2 implements ISort {
                         {
                             // move the access point back:
                             if (!backwardsBufferNotUsedYet)
+                            {
+                                Statics.log("\n(1)Before writing: " + (a22.getFilePointer() - BACKWARDS_WRITE_BUFFER_SIZE * 4 * 2));
                                 a22.seek(a22.getFilePointer() - BACKWARDS_WRITE_BUFFER_SIZE * 4 * 2); // * 2 because we've just written to it
+                            }
+
                             else
                             {
+                                Statics.log("\n(2)Before writing: " + (a22.getFilePointer() - BACKWARDS_WRITE_BUFFER_SIZE * 4));
                                 a22.seek(a22.getFilePointer() - BACKWARDS_WRITE_BUFFER_SIZE * 4 );
                                 backwardsBufferNotUsedYet = false;
                             }
 
                             // write out of the buffer:
                             for (Integer n : backwardsWriteBuffer)
+                            {
                                 w22.writeInt(n);
+                                //Statics.log("w" + n);
+                            }
+                            w22.flush();
+
+                            Statics.log("  After writing: " + a22.getFilePointer());
 
                             // clear the buffer:
                             backwardsWriteBuffer.clear();
@@ -153,6 +178,7 @@ public class Sort2 implements ISort {
                     else if (piv > tmpint)
                     {
                         w21.writeInt(tmpint);
+                        //Statics.log("w" + tmpint);
                     }
                     else // piv == tmp
                     {
@@ -164,19 +190,30 @@ public class Sort2 implements ISort {
                 for (int i = 0; i < nPivEq; i++)
                 {
                     w21.writeInt(piv);
+                    //Statics.log("w" + piv);
                 }
 
                 // empty the backwardsWriteBuffer:
                 if (!backwardsBufferNotUsedYet)
+                {
+                    Statics.log("\n(3)Before last write: " + (a22.getFilePointer() - (BACKWARDS_WRITE_BUFFER_SIZE + backwardsWriteBufferElemCount) * 4));
                     a22.seek(a22.getFilePointer() - (BACKWARDS_WRITE_BUFFER_SIZE + backwardsWriteBufferElemCount) * 4);
+                }
                 else
                 {
+                    Statics.log("\n(4)Before last write: " + (a22.getFilePointer() - (backwardsWriteBufferElemCount) * 4));
                     a22.seek(a22.getFilePointer() - (backwardsWriteBufferElemCount) * 4);
-                    backwardsBufferNotUsedYet = false;
+                    //backwardsBufferNotUsedYet = false; // this value would never be used anyway
                 }
 
                 for (Integer n : backwardsWriteBuffer)
+                {
                     w22.writeInt(n);
+                    //Statics.log("w" + n);
+                }
+
+                w22.flush();
+                Statics.log("  After last write: " + a22.getFilePointer() + "\n");
             }
 
 
@@ -185,31 +222,37 @@ public class Sort2 implements ISort {
             w21.flush();
             w22.flush();
 
+            Test.printFile(swapNeeded ? path1 : path2);
+
             ////////////////
             ////////// prepare for next loop:
             ////////////
 
-            to_process.add(lo); // 1st pair to be processed: next lo is this lo
-            to_process.add(lo + (hi - lo) - nPivGr - nPivEq); // 1st pair to be processed: next hi
-            Statics.log("Pushing: lo=" + lo + ", hi=" + (lo + (hi - lo) - nPivGr - nPivEq));
-
-            to_process.add(lo + (hi - lo) - nPivGr); // 2nd pair to be processed: next lo
-            to_process.add(hi); // 2nd pair to be processed: next hi is this hi
-            Statics.log("Pushing: lo=" + (lo + (hi - lo) - nPivGr) + ", hi=" + hi);
-
-            if (hi == m_fileLen) // we got to the end of file
+            if (hi-lo > SMALL_SORT_THRESHOLD) // otherwise this piece is sorted!
             {
-                // reset this reader:
-                //a1.seek(0);
+                if (lo + (hi - lo) - nPivGr - nPivEq - lo > 1)
+                {
+                    to_process.add(lo); // 1st pair to be processed: next lo is this lo
+                    to_process.add(lo + (hi - lo) - nPivGr - nPivEq); // 1st pair to be processed: next hi
+                    Statics.log("Pushing: lo=" + lo + ", hi=" + (lo + (hi - lo) - nPivGr - nPivEq));
+                }
+
+                if (hi - (lo + (hi - lo) - nPivGr) > 1)
+                {
+                    to_process.add(lo + (hi - lo) - nPivGr); // 2nd pair to be processed: next lo
+                    to_process.add(hi); // 2nd pair to be processed: next hi is this hi
+                    Statics.log("Pushing: lo=" + (lo + (hi - lo) - nPivGr) + ", hi=" + hi);
+                }
+            }
+
+            if (!to_process.isEmpty() && to_process.peek() < hi) // we got to the end of file and are about to loop around
+            {
+                swapNeeded = !swapNeeded;
 
                 // swap readers:
                 tmpDataInputStream = r1;
                 r1 = r2;
                 r2 = tmpDataInputStream;
-
-                // reset the writers:
-                //a21.seek(0);
-                //a22.seek((m_fileLen - BACKWARDS_WRITE_BUFFER_SIZE) * 4);
 
                 // swap forward writers:
                 tmpDataOutputStream = w11;
@@ -221,18 +264,36 @@ public class Sort2 implements ISort {
                 w12 = w22;
                 w22 = tmpDataOutputStream;
 
-                swapNeeded = !swapNeeded;
+                Object tmp = a1;
+                a1 = a2;
+                a2 = (RandomAccessFile) tmp;
+
+                tmp = a11;
+                a11 = a21;
+                a21 = (RandomAccessFile) tmp;
+
+                tmp = a12;
+                a12 = a22;
+                a22 = (RandomAccessFile) tmp;
             }
             else // we haven't gotten to the end of the file
             {
-                // move forward writer:
-                //a21.skipBytes((nPivEq + nPivGr) * 4);
-
-                // move backward writer:
 
             }
         }
 
+        w11.close();
+        w12.close();
+        w21.close();
+        w22.close();
+        r1.close();
+        r2.close();
+        a1.close();
+        a2.close();
+        a11.close();
+        a12.close();
+        a21.close();
+        a22.close();
 
         if (swapNeeded)
         {

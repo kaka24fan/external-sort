@@ -28,9 +28,9 @@ public class Statics {
         new File(from).renameTo(new File(to));
     }
 
-    public static void log(String msg)
+    public static void log(Object msg)
     {
-        if (ExternalSort.TESTING)
+        if (ExternalSort.DEBUG)
             System.out.println(msg);
     }
 

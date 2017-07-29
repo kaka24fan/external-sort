@@ -28,9 +28,9 @@ public class Test {
             String f1 = "test-suite\\test" + i + "a.dat";
             String f2 = "test-suite\\test" + i + "b.dat";
 
-            //printFile(f1, true);
+            //if (i==13) printFile(f1, true);
             ExternalSort.sort(f1, f2);
-            //printFile(f1, false);
+            //if (i==13) printFile(f1, false);
 
             String ourChecksum = ExternalSort.checkSum(f1);
             String correctChecksum = checksums.get(i-1);
@@ -72,6 +72,7 @@ public class Test {
     }
 
     public static void printFile(String path) throws java.io.IOException {
+        System.out.println("Printing " + path);
         RandomAccessFile a = new RandomAccessFile(path, "r");
         DataInputStream reader = new DataInputStream(
                 new BufferedInputStream(new FileInputStream(a.getFD()), toIntExact(Runtime.getRuntime().maxMemory()) / Sort1.MAX_MEM_DIVIDER));
