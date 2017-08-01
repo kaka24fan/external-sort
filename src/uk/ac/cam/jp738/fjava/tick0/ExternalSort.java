@@ -16,7 +16,7 @@ public class ExternalSort {
 	 {
 		 //choose the sort implementation:
 
-         ISort sortingMethod = new Sort2();
+         ISort sortingMethod = new Sort2_nocomment();
 
          sortingMethod.sort(filenameA, filenameB);
 	 }
@@ -24,7 +24,9 @@ public class ExternalSort {
 	public static void main(String[] args) throws Exception {	
 		if (TESTING)
         {
-            Test.test(13);
+            Test.writeExampleFile();
+            Test.writeExampleFile2();
+            Test.test(0);
             return;
         }
 
