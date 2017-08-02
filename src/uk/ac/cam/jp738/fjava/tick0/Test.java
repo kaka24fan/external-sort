@@ -23,7 +23,7 @@ public class Test {
             }
         }
 
-        for (int i = 0; i < 18; i++)
+        for (int i = 1; i < 18; i++)
         {
             String f1 = "test-suite\\test" + i + "a.dat";
             String f2 = "test-suite\\test" + i + "b.dat";
@@ -48,7 +48,7 @@ public class Test {
         copyTestsFromBackup();
         long time0 = System.nanoTime();
 
-        List<String> checksums = new ArrayList<String>();
+        List<String> checksums = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader("test-suite/checksum.txt")))
         {
             String line;
@@ -88,6 +88,7 @@ public class Test {
             int r = reader.readInt();
             System.out.println(r);
         }
+        reader.close();
     }
 
     public static void printTwoFiles(String path1, String path2) throws java.io.IOException {
@@ -111,6 +112,9 @@ public class Test {
             System.out.print("-");
         }
         System.out.print("\n");
+
+        reader.close();
+        reader2.close();
     }
 
     private static void copyTestsFromBackup()
@@ -140,11 +144,12 @@ public class Test {
 
     public static void writeExampleFile() throws java.io.IOException
     {
-        String d = "backup-test-suite\\test" + 0 + "a.dat";
+        String d = "backup-test-suite\\test" + 18 + "a.dat";
         RandomAccessFile a12 = new RandomAccessFile(d, "rw");
         DataOutputStream w12 = new DataOutputStream(
                 new BufferedOutputStream(new FileOutputStream(a12.getFD())));
-        int[] ar = {4, 7, 6, 2, 9, 5, 8, 1, 3};
+        //int[] ar = {4, 7, 6, 2, 9, 5, 8, 1, 3};
+        int[] ar = {2, 1, 10, 4, 9, 8, 3, 6, 5, 7};
         for (int n : ar)
             w12.writeInt(n);
 
@@ -154,11 +159,12 @@ public class Test {
     }
     public static void writeExampleFile2() throws java.io.IOException
     {
-        String d = "backup-test-suite\\test" + 0 + "b.dat";
+        String d = "backup-test-suite\\test" + 18 + "b.dat";
         RandomAccessFile a12 = new RandomAccessFile(d, "rw");
         DataOutputStream w12 = new DataOutputStream(
                 new BufferedOutputStream(new FileOutputStream(a12.getFD())));
-        int[] ar = {4, 7, 6, 2, 9, 5, 8, 1, 3};
+        //int[] ar = {4, 7, 6, 2, 9, 5, 8, 1, 3};
+        int[] ar = {2, 1, 10, 4, 9, 8, 3, 6, 5, 7};
         for (int n : ar)
             w12.writeInt(n);
 

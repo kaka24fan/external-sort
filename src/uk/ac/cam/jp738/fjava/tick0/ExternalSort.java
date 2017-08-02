@@ -26,7 +26,7 @@ public class ExternalSort {
         {
             Test.writeExampleFile();
             Test.writeExampleFile2();
-            Test.test(0);
+            Test.test(18);
             return;
         }
 
