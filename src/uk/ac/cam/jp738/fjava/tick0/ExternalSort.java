@@ -16,7 +16,7 @@ public class ExternalSort {
 	 {
 		 //choose the sort implementation:
 
-         ISort sortingMethod = new Sort2_nocomment();
+         ISort sortingMethod = new Sort2();
 
          sortingMethod.sort(filenameA, filenameB);
 	 }
