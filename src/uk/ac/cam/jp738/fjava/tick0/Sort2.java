@@ -119,6 +119,9 @@ public class Sort2 implements ISort {
                 if (ExternalSort.DEBUG)
                 {
                     System.out.print("BEFORE WRITING ARRAY:\n");
+                    w11.flush();
+                    w21.flush();
+                    w22.flush();
                     Test.printTwoFiles(path1, path2);
                 }
 
@@ -127,12 +130,13 @@ public class Sort2 implements ISort {
                     w11.writeInt(small_array[j]);
                     w21.writeInt(small_array[j]);
                 }
-                w11.flush();
-                w21.flush();
 
                 if (ExternalSort.DEBUG)
                 {
                     System.out.print("AFTER WRITING ARRAY:\n");
+                    w11.flush();
+                    w21.flush();
+                    w22.flush();
                     Test.printTwoFiles(path1, path2);
                 }
             }
@@ -143,20 +147,19 @@ public class Sort2 implements ISort {
                 for (int i = 1; i < hi - lo; i++)
                 {
                     tmpint = r1.readInt();
-                    if (piv < tmpint)
+                    if (tmpint > piv)
                     {
                         nPivGr++;
                         if (backwardsWriteBufferElemCount == BACKWARDS_WRITE_BUFFER_SIZE)
                         {
                             if (!backwardsBufferNotUsedYet)
                             {
-                                w22.flush();
                                 w22 = createWriter(w22, pathTo, m_maxMem/MAX_MEM_DIVIDER, w22_position - BACKWARDS_WRITE_BUFFER_SIZE * 4 * 2);
+                                w22_position -= BACKWARDS_WRITE_BUFFER_SIZE * 4;
                             }
 
                             else
                             {
-                                w22.flush();
                                 w22 = createWriter(w22, pathTo, m_maxMem/MAX_MEM_DIVIDER, w22_position - BACKWARDS_WRITE_BUFFER_SIZE * 4 );
                                 backwardsBufferNotUsedYet = false;
                             }
@@ -165,8 +168,6 @@ public class Sort2 implements ISort {
                             {
                                 w22.writeInt(n);
                             }
-                            w22.flush();
-                            w22_position -= BACKWARDS_WRITE_BUFFER_SIZE * 4;
 
                             backwardsWriteBuffer.clear();
                             backwardsWriteBuffer.add(tmpint);
@@ -178,12 +179,12 @@ public class Sort2 implements ISort {
                             backwardsWriteBufferElemCount++;
                         }
                     }
-                    else if (piv > tmpint)
+                    else if (tmpint < piv)
                     {
                         w21.writeInt(tmpint);
                         w21_position += 4;
                     }
-                    else // piv == tmp
+                    else // tmp == piv
                     {
                         nPivEq++;
                     }
@@ -193,8 +194,10 @@ public class Sort2 implements ISort {
                 //// No need to update writer positions from here on.------------------------------------------------ //
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                w11.flush();
                 w11 = createWriter(w11, pathFrom, m_maxMem/MAX_MEM_DIVIDER, w21_position);
+                if (ExternalSort.DEBUG)
+                    System.out.println("w21_position=" + w21_position);
+
                 for (int i = 0; i < nPivEq; i++)
                 {
                     w21.writeInt(piv);
@@ -203,12 +206,10 @@ public class Sort2 implements ISort {
 
                 if (!backwardsBufferNotUsedYet)
                 {
-                    w22.flush();
                     w22 = createWriter(w22, pathTo, m_maxMem/MAX_MEM_DIVIDER, w22_position - (BACKWARDS_WRITE_BUFFER_SIZE + backwardsWriteBufferElemCount) * 4);
                 }
                 else
                 {
-                    w22.flush();
                     w22 = createWriter(w22, pathTo, m_maxMem/MAX_MEM_DIVIDER, w22_position - (backwardsWriteBufferElemCount) * 4);
                 }
 
@@ -218,11 +219,7 @@ public class Sort2 implements ISort {
                 }
                 backwardsWriteBuffer.clear();
 
-                w22.flush();
             }
-
-            w21.flush();
-            w22.flush();
 
             if (hi-lo > SMALL_SORT_THRESHOLD)
             {
@@ -248,6 +245,9 @@ public class Sort2 implements ISort {
                 pathTo = tmpString;
             }
 
+            w11.flush();
+            w21.flush();
+            w22.flush();
             w11.close();
             w21.close();
             w22.close();
@@ -260,7 +260,6 @@ public class Sort2 implements ISort {
             }
         }
 
-
         if (swapNeeded)
         {
             Statics.swap(path2, path1);
@@ -270,22 +269,25 @@ public class Sort2 implements ISort {
     private static DataOutputStream createWriter(DataOutputStream curr, String filePath, int bufferSize, int seekPos) throws java.io.IOException
     {
         RandomAccessFile raf = new RandomAccessFile(filePath, "rw");
-        raf.seek(seekPos);
         DataOutputStream ret =  new DataOutputStream(
                 new BufferedOutputStream(new FileOutputStream(raf.getFD()), bufferSize)
         );
+        raf.seek(seekPos);
         if (curr != null)
+        {
+            curr.flush();
             curr.close();
+        }
         return ret;
     }
 
     private static DataInputStream createReader(DataInputStream curr, String filePath, int bufferSize, int seekPos) throws java.io.IOException
     {
         RandomAccessFile raf = new RandomAccessFile(filePath, "r");
-        raf.seek(seekPos);
         DataInputStream ret =  new DataInputStream(
                 new BufferedInputStream(new FileInputStream(raf.getFD()), bufferSize)
         );
+        raf.seek(seekPos);
         if (curr != null)
             curr.close();
         return ret;

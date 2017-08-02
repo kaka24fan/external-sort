@@ -63,7 +63,7 @@ public class Test {
         ExternalSort.sort(f1, f2);
         printFile(f1, false);
 
-        if (test_num != 0)
+        if (test_num >= 1 && test_num <= 17)
         {
             String ourChecksum = ExternalSort.checkSum(f1);
             String correctChecksum = checksums.get(test_num-1);
@@ -119,7 +119,7 @@ public class Test {
 
     private static void copyTestsFromBackup()
     {
-        for (int i = 0; i <= 17; i++)
+        for (int i = 0; i <= 18; i++)
         {
             String s = "backup-test-suite\\test" + i + "a.dat";
             String d = "test-suite\\test" + i + "a.dat";
